@@ -1,0 +1,17 @@
+{
+  "name": "prophets/prophets-wp-acf",
+  "type": "wordpress-muplugin",
+  "require": {
+    "php": "^7.1",
+    "composer/installers": "^1.0",
+    "prophets/prophets-wp-base": "@dev"
+  },
+  "autoload": {
+    "psr-4": {
+      "Prophets\\WPACF\\": "src/"
+    },
+    "files": [
+      "src/utilities.php"
+    ]
+  }
+}
