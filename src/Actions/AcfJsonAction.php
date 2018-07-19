@@ -3,10 +3,14 @@
 namespace Prophets\WPACF\Actions;
 
 use Prophets\WPBase\Actions\ActionAbstract;
+use Prophets\WPBase\HookManager;
+use Prophets\WPACF\AcfManager;
 
 class AcfJsonAction extends ActionAbstract
 {
-    /**
+	protected $currentFieldGroup;
+
+	/**
      * Only allow editing of ACF fields when in development mode and authenticatedGkk as a super admin.
      *
      * @return bool
@@ -26,15 +30,20 @@ class AcfJsonAction extends ActionAbstract
     public function init()
     {
         $showAdmin = false;
+        $hookManager = new HookManager();
 
         if (self::isEditMode()) {
-            $this->base->addHook('filter', [
+	        $hookManager->addHook('action', [
+		        'name' => 'acf/update_field_group',
+		        'use'  => [$this, 'setCurrentFieldGroup']
+	        ]);
+            $hookManager->addHook('filter', [
                 'name' => 'acf/settings/save_json',
-                'use' => [$this, 'saveJsonFilter']
+                'use'  => [$this, 'saveJsonFilter']
             ]);
-            $this->base->addHook('filter', [
+            $hookManager->addHook('filter', [
                 'name' => 'acf/settings/load_json',
-                'use' => [$this, 'loadJsonFilter']
+                'use'  => [$this, 'loadJsonFilter']
             ]);
             if (is_super_admin()) {
                 $showAdmin = true;
@@ -42,22 +51,30 @@ class AcfJsonAction extends ActionAbstract
         } else {
             $this->loadFields();
         }
-        $this->base->addHook('filter', [
+        $hookManager->addHook('filter', [
             'name' => 'acf/settings/show_admin',
-            'use' => function () use ($showAdmin) {
+            'use'  => function () use ($showAdmin) {
                 return $showAdmin;
             }
         ]);
     }
 
+	/**
+	 * @return AcfManager
+	 */
+	public function getAcfManager()
+    {
+	    return $this->pluginRepository->getPlugin('acf');
+    }
+
     /**
-     * Get the path where ACF group json files are located.
+     * Get the paths where ACF group json files are located.
      *
      * @return array
      */
     protected function getStoragePaths()
     {
-        return $this->base->getConfig()->get('acf')['localJsonPaths'] ?? [];
+    	return $this->getAcfManager()->getStoragePaths();
     }
 
     /**
@@ -67,7 +84,17 @@ class AcfJsonAction extends ActionAbstract
      */
     public function saveJsonFilter()
     {
-        return $this->getStoragePaths()[0] ?? null;
+        return $this->getAcfManager()->getStoragePathForGroupKey($this->currentFieldGroup);
+    }
+
+	/**
+	 * Set the current ACF field group key.
+	 *
+	 * @param string $groupKey
+	 */
+	public function setCurrentFieldGroup($groupKey)
+    {
+    	$this->currentFieldGroup = $groupKey;
     }
 
     /**
@@ -103,12 +130,8 @@ class AcfJsonAction extends ActionAbstract
      */
     protected function loadFieldsFromDir($path)
     {
-        if (is_dir($path)) {
-            foreach (new \DirectoryIterator($path) as $file) {
-                if ($file->getExtension() === 'json') {
-                    acf_add_local_field_group(json_decode(file_get_contents($file->getPathname()), true));
-                }
-            }
-        }
+		foreach (AcfManager::getJsonFilesFromDir($path) as $file) {
+			acf_add_local_field_group(json_decode(file_get_contents($file->getPathname()), true));
+		}
     }
 }
