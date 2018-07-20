@@ -5,6 +5,7 @@ namespace Prophets\WPACF\Actions;
 use Prophets\WPBase\Actions\ActionAbstract;
 use Prophets\WPBase\HookManager;
 use Prophets\WPACF\AcfManager;
+use Prophets\WPBase\PluginRepository;
 
 class AcfJsonAction extends ActionAbstract
 {
@@ -64,7 +65,7 @@ class AcfJsonAction extends ActionAbstract
 	 */
 	public function getAcfManager()
     {
-	    return $this->pluginRepository->getPlugin('acf');
+	    return PluginRepository::getInstance()->getPlugin('acf');
     }
 
     /**
