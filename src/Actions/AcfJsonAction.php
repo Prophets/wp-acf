@@ -88,18 +88,20 @@ class AcfJsonAction extends ActionAbstract
     	return $this->getAcfManager()->getStoragePaths();
     }
 
-    /**
-     * Return json storage path.
-     *
-     * @return string|null
-     */
-    public function saveJsonFilter()
+	/**
+	 * Return json storage path.
+	 *
+	 * @param string $path
+	 *
+	 * @return null|string
+	 */
+    public function saveJsonFilter($path)
     {
     	if (($key = $this->getValueFromContext('key')) !== null) {
-		    return $this->getAcfManager()->getStoragePathForGroupKey($key);
+		    return $this->getAcfManager()->getStoragePathForGroupKey($key) ?: $path;
 	    }
 
-	    return null;
+	    return $path;
     }
 
 	/**
