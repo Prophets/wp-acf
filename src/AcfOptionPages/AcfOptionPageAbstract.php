@@ -25,6 +25,7 @@ abstract class AcfOptionPageAbstract
 
     /**
      * AcfOptionPageAbstract constructor.
+     *
      * @param Base $base
      */
     public function __construct(Base $base)

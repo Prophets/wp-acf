@@ -13,12 +13,12 @@ use Prophets\WPBase\PluginRepository;
  */
 class AcfJsonAction extends ActionAbstract
 {
-	/**
-	 * @var array
-	 */
-	protected $fieldGroupContext;
+    /**
+     * @var array
+     */
+    protected $fieldGroupContext;
 
-	/**
+    /**
      * Only allow editing of ACF fields when in development mode and authenticatedGkk as a super admin.
      *
      * @return bool
@@ -41,20 +41,20 @@ class AcfJsonAction extends ActionAbstract
         $hookManager = new HookManager();
 
         if (self::isEditMode()) {
-	        $hookManager->addHook('action', [
-		        'name' => 'acf/update_field_group',
-		        'use'  => [$this, 'setFieldGroupContext'],
-		        'priority' => 1,
-	        ]);
-            $hookManager->addHook('filter', [
-                'name' => 'acf/settings/save_json',
-                'use'  => [$this, 'saveJsonFilter'],
-		        'priority' => 99,
+            $hookManager->addHook('action', [
+                'name'     => 'acf/update_field_group',
+                'use'      => [$this, 'setFieldGroupContext'],
+                'priority' => 1,
             ]);
             $hookManager->addHook('filter', [
-                'name' => 'acf/settings/load_json',
-                'use'  => [$this, 'loadJsonFilter'],
-		        'priority' => 99,
+                'name'     => 'acf/settings/save_json',
+                'use'      => [$this, 'saveJsonFilter'],
+                'priority' => 99,
+            ]);
+            $hookManager->addHook('filter', [
+                'name'     => 'acf/settings/load_json',
+                'use'      => [$this, 'loadJsonFilter'],
+                'priority' => 99,
             ]);
             if (is_super_admin()) {
                 $showAdmin = true;
@@ -70,12 +70,12 @@ class AcfJsonAction extends ActionAbstract
         ]);
     }
 
-	/**
-	 * @return AcfManager
-	 */
-	public function getAcfManager()
+    /**
+     * @return AcfManager
+     */
+    public function getAcfManager()
     {
-	    return PluginRepository::getInstance()->getPlugin('acf');
+        return PluginRepository::getInstance()->getPlugin('acf');
     }
 
     /**
@@ -85,46 +85,46 @@ class AcfJsonAction extends ActionAbstract
      */
     protected function getStoragePaths()
     {
-    	return $this->getAcfManager()->getStoragePaths();
+        return $this->getAcfManager()->getStoragePaths();
     }
 
-	/**
-	 * Return json storage path.
-	 *
-	 * @param string $path
-	 *
-	 * @return null|string
-	 */
+    /**
+     * Return json storage path.
+     *
+     * @param string $path
+     *
+     * @return null|string
+     */
     public function saveJsonFilter($path)
     {
-    	if (($key = $this->getValueFromContext('key')) !== null) {
-		    return $this->getAcfManager()->getStoragePathForGroupKey($key) ?: $path;
-	    }
+        if (($key = $this->getValueFromContext('key')) !== null) {
+            return $this->getAcfManager()->getStoragePathForGroupKey($key) ?: $path;
+        }
 
-	    return $path;
+        return $path;
     }
 
-	/**
-	 * Set the ACF field group context.
-	 *
-	 * @param array $fieldGroup
-	 */
-	public function setFieldGroupContext(array $fieldGroup)
+    /**
+     * Set the ACF field group context.
+     *
+     * @param array $fieldGroup
+     */
+    public function setFieldGroupContext(array $fieldGroup)
     {
-    	$this->fieldGroupContext = $fieldGroup;
+        $this->fieldGroupContext = $fieldGroup;
     }
 
-	/**
-	 * Get a value from ACF field group context.
-	 *
-	 * @param string $name
-	 * @param null $default
-	 *
-	 * @return mixed|null
-	 */
-	public function getValueFromContext($name, $default = null)
+    /**
+     * Get a value from ACF field group context.
+     *
+     * @param string $name
+     * @param null $default
+     *
+     * @return mixed|null
+     */
+    public function getValueFromContext($name, $default = null)
     {
-	    return $this->fieldGroupContext[$name] ?? $default;
+        return $this->fieldGroupContext[$name] ?? $default;
     }
 
     /**
@@ -161,8 +161,8 @@ class AcfJsonAction extends ActionAbstract
      */
     protected function loadFieldsFromDir($path)
     {
-		foreach (AcfManager::getJsonFilesFromDir($path) as $file) {
-			acf_add_local_field_group(json_decode(file_get_contents($file->getPathname()), true));
-		}
+        foreach (AcfManager::getJsonFilesFromDir($path) as $file) {
+            acf_add_local_field_group(json_decode(file_get_contents($file->getPathname()), true));
+        }
     }
 }

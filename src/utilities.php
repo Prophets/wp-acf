@@ -1,6 +1,6 @@
 <?php
 
-if (! function_exists('prophets_acf_get_local_field')) {
+if ( ! function_exists('prophets_acf_get_local_field')) {
     /**
      * Extend local ACF functionality with a field search by name
      *
@@ -8,7 +8,8 @@ if (! function_exists('prophets_acf_get_local_field')) {
      *
      * @return mixed|null
      */
-    function prophets_acf_get_local_field($name) {
+    function prophets_acf_get_local_field($name)
+    {
         $localFields = acf()->local;
 
         foreach ($localFields->fields as $field) {
@@ -16,6 +17,7 @@ if (! function_exists('prophets_acf_get_local_field')) {
                 return $field;
             }
         }
+
         return null;
     }
 }
