@@ -7,9 +7,16 @@ use Prophets\WPBase\HookManager;
 use Prophets\WPACF\AcfManager;
 use Prophets\WPBase\PluginRepository;
 
+/**
+ * Class AcfJsonAction
+ * @package Prophets\WPACF\Actions
+ */
 class AcfJsonAction extends ActionAbstract
 {
-	protected $currentFieldGroup;
+	/**
+	 * @var array
+	 */
+	protected $fieldGroupContext;
 
 	/**
      * Only allow editing of ACF fields when in development mode and authenticatedGkk as a super admin.
@@ -36,15 +43,18 @@ class AcfJsonAction extends ActionAbstract
         if (self::isEditMode()) {
 	        $hookManager->addHook('action', [
 		        'name' => 'acf/update_field_group',
-		        'use'  => [$this, 'setCurrentFieldGroup']
+		        'use'  => [$this, 'setFieldGroupContext'],
+		        'priority' => 1,
 	        ]);
             $hookManager->addHook('filter', [
                 'name' => 'acf/settings/save_json',
-                'use'  => [$this, 'saveJsonFilter']
+                'use'  => [$this, 'saveJsonFilter'],
+		        'priority' => 99,
             ]);
             $hookManager->addHook('filter', [
                 'name' => 'acf/settings/load_json',
-                'use'  => [$this, 'loadJsonFilter']
+                'use'  => [$this, 'loadJsonFilter'],
+		        'priority' => 99,
             ]);
             if (is_super_admin()) {
                 $showAdmin = true;
@@ -85,21 +95,39 @@ class AcfJsonAction extends ActionAbstract
      */
     public function saveJsonFilter()
     {
-        return $this->getAcfManager()->getStoragePathForGroupKey($this->currentFieldGroup);
+    	if (($key = $this->getValueFromContext('key')) !== null) {
+		    return $this->getAcfManager()->getStoragePathForGroupKey($key);
+	    }
+
+	    return null;
     }
 
 	/**
-	 * Set the current ACF field group key.
+	 * Set the ACF field group context.
 	 *
-	 * @param string $groupKey
+	 * @param array $fieldGroup
 	 */
-	public function setCurrentFieldGroup($groupKey)
+	public function setFieldGroupContext(array $fieldGroup)
     {
-    	$this->currentFieldGroup = $groupKey;
+    	$this->fieldGroupContext = $fieldGroup;
+    }
+
+	/**
+	 * Get a value from ACF field group context.
+	 *
+	 * @param string $name
+	 * @param null $default
+	 *
+	 * @return mixed|null
+	 */
+	public function getValueFromContext($name, $default = null)
+    {
+	    return $this->fieldGroupContext[$name] ?? $default;
     }
 
     /**
-     * Remove the default json storage path and our own to the stack.
+     * Prepend AcfManager storage paths to the stack, making the manager's storage paths
+     * have priority over regular defined paths.
      *
      * @param array $paths
      *
@@ -107,7 +135,7 @@ class AcfJsonAction extends ActionAbstract
      */
     public function loadJsonFilter(array $paths)
     {
-        $paths = array_merge($paths, $this->getStoragePaths());
+        $paths = array_merge($this->getStoragePaths(), $paths);
 
         return $paths;
     }
