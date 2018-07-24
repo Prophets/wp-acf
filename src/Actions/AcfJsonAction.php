@@ -162,7 +162,7 @@ class AcfJsonAction extends ActionAbstract
     protected function loadFieldsFromDir($path)
     {
         foreach (AcfManager::getJsonFilesFromDir($path) as $file) {
-            acf_add_local_field_group(json_decode(file_get_contents($file->getPathname()), true));
+            acf_add_local_field_group(json_decode(file_get_contents($file), true));
         }
     }
 }
